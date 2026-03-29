@@ -1,10 +1,25 @@
-// src/app.ts or temp script
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import { env } from './config/env.ts';
+import router from './routes/index.ts';
 
-import { prisma } from './core/db/prisma.ts'
+const app = express();
 
-async function testDB() {
-  await prisma.$connect()
-  console.log('✅ DB connected')
-}
+app.use(
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 
-testDB()
+app.use(express.json());
+app.use(cookieParser());
+
+app.use('/api', router);
+
+app.get('/health', (_req, res) => {
+  res.status(200).json({ ok: true });
+});
+
+export default app;
