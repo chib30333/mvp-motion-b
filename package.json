@@ -6,6 +6,9 @@
   "author": "",
   "type": "module",
   "main": "server.ts",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsx src/app.ts",
@@ -23,6 +26,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
+    "bcryptjs": "^3.0.3",
     "nodemon": "^3.1.14",
     "pg": "^8.20.0"
   }
