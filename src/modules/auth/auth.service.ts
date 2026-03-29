@@ -1,8 +1,11 @@
-import { UserRole } from '@prisma/client';
-import { OAuth2Client } from 'google-auth-library';
+import { AuthProvider, UserRole } from '@prisma/client';
+import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import ms from 'ms';
 import crypto from 'crypto';
 import { env } from '../../config/env.ts';
+import { ConflictError } from '../../core/errors/ConflictError.ts';
+import { NotFoundError } from '../../core/errors/NotFoundError.ts';
+import { UnauthorizedError } from '../../core/errors/UnauthorizedError.ts';
 import { compareValue, hashValue } from '../../core/lib/bcrypt.ts';
 import {
     signAccessToken,
@@ -17,7 +20,6 @@ import type {
     RegisterInput,
     SafeUser,
 } from './auth.types.ts';
-import type { TokenPayload } from 'google-auth-library';
 
 function normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
@@ -48,7 +50,7 @@ export class AuthService {
         id: string;
         email: string;
         role: UserRole;
-        authProvider: any;
+        authProvider: AuthProvider;
         firstName: string | null;
         lastName: string | null;
         fullName: string | null;
@@ -76,7 +78,7 @@ export class AuthService {
         const user = await this.authRepository.findUserById(userId);
 
         if (!user) {
-            throw new Error('User not found while building auth response');
+            throw new NotFoundError('User not found');
         }
 
         const accessToken = signAccessToken({
@@ -109,11 +111,13 @@ export class AuthService {
 
         const existingUser = await this.authRepository.findUserByEmail(email);
         if (existingUser) {
-            throw new Error('Email already in use');
+            throw new ConflictError('Email already in use');
         }
 
         if (!([UserRole.CUSTOMER, UserRole.PROVIDER] as UserRole[]).includes(input.role)) {
-            throw new Error('Public registration is allowed only for CUSTOMER or PROVIDER');
+            throw new UnauthorizedError(
+                'Public registration is allowed only for CUSTOMER or PROVIDER'
+            );
         }
 
         const passwordHash = await hashValue(input.password);
@@ -144,20 +148,20 @@ export class AuthService {
 
         const user = await this.authRepository.findUserByEmail(email);
         if (!user) {
-            throw new Error('Invalid credentials');
+            throw new UnauthorizedError('Invalid credentials');
         }
 
         if (!user.passwordHash) {
-            throw new Error('This account does not support password login');
+            throw new UnauthorizedError('This account does not support password login');
         }
 
         if (!user.isActive) {
-            throw new Error('This account is inactive');
+            throw new UnauthorizedError('This account is inactive');
         }
 
         const isPasswordValid = await compareValue(input.password, user.passwordHash);
         if (!isPasswordValid) {
-            throw new Error('Invalid credentials');
+            throw new UnauthorizedError('Invalid credentials');
         }
 
         await this.authRepository.updateUserAfterLogin(user.id);
@@ -173,7 +177,7 @@ export class AuthService {
 
     private async verifyGoogleIdToken(idToken: string): Promise<TokenPayload> {
         if (!this.googleClient) {
-            throw new Error('Google auth is not configured');
+            throw new UnauthorizedError('Google auth is not configured');
         }
 
         const ticket = await this.googleClient.verifyIdToken({
@@ -184,15 +188,15 @@ export class AuthService {
         const payload = ticket.getPayload();
 
         if (!payload) {
-            throw new Error('Invalid Google token payload');
+            throw new UnauthorizedError('Invalid Google token payload');
         }
 
         if (!payload.email) {
-            throw new Error('Google account email is missing');
+            throw new UnauthorizedError('Google account email is missing');
         }
 
         if (!payload.sub) {
-            throw new Error('Google account ID is missing');
+            throw new UnauthorizedError('Google account ID is missing');
         }
 
         return payload;
@@ -225,7 +229,9 @@ export class AuthService {
                 const role = input.role ?? UserRole.CUSTOMER;
 
                 if (!([UserRole.CUSTOMER, UserRole.PROVIDER] as UserRole[]).includes(role)) {
-                    throw new Error('Google signup is allowed only for CUSTOMER or PROVIDER');
+                    throw new UnauthorizedError(
+                        'Google signup is allowed only for CUSTOMER or PROVIDER'
+                    );
                 }
 
                 user = await this.authRepository.createGoogleUser({
@@ -242,7 +248,7 @@ export class AuthService {
         }
 
         if (!user.isActive) {
-            throw new Error('This account is inactive');
+            throw new UnauthorizedError('This account is inactive');
         }
 
         await this.authRepository.updateUserAfterLogin(user.id);
@@ -260,29 +266,29 @@ export class AuthService {
         rawRefreshToken: string
     ): Promise<AuthResponse & { refreshToken: string }> {
         if (!rawRefreshToken) {
-            throw new Error('Refresh token is required');
+            throw new UnauthorizedError('Refresh token is required');
         }
 
         const payload = verifyRefreshToken(rawRefreshToken);
 
         if (payload.type !== 'refresh') {
-            throw new Error('Invalid refresh token type');
+            throw new UnauthorizedError('Invalid refresh token type');
         }
 
         const tokenHash = sha256(rawRefreshToken);
         const storedToken = await this.authRepository.findRefreshTokenByHash(tokenHash);
 
         if (!storedToken) {
-            throw new Error('Refresh token not found or revoked');
+            throw new UnauthorizedError('Refresh token not found or revoked');
         }
 
         if (storedToken.expiresAt < new Date()) {
-            throw new Error('Refresh token expired');
+            throw new UnauthorizedError('Refresh token expired');
         }
 
         const user = await this.authRepository.findUserById(payload.sub);
         if (!user || !user.isActive) {
-            throw new Error('User not found or inactive');
+            throw new UnauthorizedError('User not found or inactive');
         }
 
         await this.authRepository.revokeRefreshTokenByHash(tokenHash);
@@ -304,7 +310,7 @@ export class AuthService {
             const tokenHash = sha256(rawRefreshToken);
             await this.authRepository.revokeRefreshTokenByHash(tokenHash);
         } catch {
-            // Ignore invalid token on logout to keep logout idempotent
+            return;
         }
     }
 
@@ -312,11 +318,11 @@ export class AuthService {
         const user = await this.authRepository.findUserById(userId);
 
         if (!user) {
-            throw new Error('User not found');
+            throw new NotFoundError('User not found');
         }
 
         if (!user.isActive) {
-            throw new Error('User inactive');
+            throw new UnauthorizedError('User inactive');
         }
 
         return this.mapSafeUser(user);

@@ -1,11 +1,6 @@
 import type { Request, Response } from 'express';
 import { env } from '../../config/env.ts';
 import { AuthService } from './auth.service.ts';
-import {
-    googleLoginSchema,
-    loginSchema,
-    registerSchema,
-} from './auth.schema.ts';
 
 const authService = new AuthService();
 
@@ -30,121 +25,63 @@ function clearRefreshTokenCookie(res: Response): void {
 
 export class AuthController {
     async register(req: Request, res: Response): Promise<void> {
-        try {
-            const input = registerSchema.parse(req.body);
-            const result = await authService.register(input);
+        const result = await authService.register(req.body);
+        setRefreshTokenCookie(res, result.refreshToken);
 
-            setRefreshTokenCookie(res, result.refreshToken);
-
-            res.status(201).json({
-                user: result.user,
-                accessToken: result.accessToken,
-            });
-        } catch (error: any) {
-            const message = error?.message ?? 'Registration failed';
-
-            res.status(message === 'Email already in use' ? 409 : 400).json({
-                message,
-            });
-        }
+        res.status(201).json({
+            user: result.user,
+            accessToken: result.accessToken,
+        });
     }
 
     async login(req: Request, res: Response): Promise<void> {
-        try {
-            const input = loginSchema.parse(req.body);
-            const result = await authService.login(input);
+        const result = await authService.login(req.body);
+        setRefreshTokenCookie(res, result.refreshToken);
 
-            setRefreshTokenCookie(res, result.refreshToken);
-
-            res.status(200).json({
-                user: result.user,
-                accessToken: result.accessToken,
-            });
-        } catch (error: any) {
-            const message = error?.message ?? 'Login failed';
-
-            res.status(401).json({
-                message,
-            });
-        }
+        res.status(200).json({
+            user: result.user,
+            accessToken: result.accessToken,
+        });
     }
 
     async google(req: Request, res: Response): Promise<void> {
-        try {
-            const input = googleLoginSchema.parse(req.body);
-            const result = await authService.loginWithGoogle(input);
+        const result = await authService.loginWithGoogle(req.body);
+        setRefreshTokenCookie(res, result.refreshToken);
 
-            setRefreshTokenCookie(res, result.refreshToken);
-
-            res.status(200).json({
-                user: result.user,
-                accessToken: result.accessToken,
-            });
-        } catch (error: any) {
-            res.status(401).json({
-                message: error?.message ?? 'Google authentication failed',
-            });
-        }
+        res.status(200).json({
+            user: result.user,
+            accessToken: result.accessToken,
+        });
     }
 
     async refresh(req: Request, res: Response): Promise<void> {
-        try {
-            const refreshToken = req.cookies?.[env.COOKIE_REFRESH_TOKEN_NAME];
+        const refreshToken = req.cookies?.[env.COOKIE_REFRESH_TOKEN_NAME];
+        const result = await authService.refreshSession(refreshToken);
 
-            const result = await authService.refreshSession(refreshToken);
+        setRefreshTokenCookie(res, result.refreshToken);
 
-            setRefreshTokenCookie(res, result.refreshToken);
-
-            res.status(200).json({
-                user: result.user,
-                accessToken: result.accessToken,
-            });
-        } catch (error: any) {
-            clearRefreshTokenCookie(res);
-
-            res.status(401).json({
-                message: error?.message ?? 'Refresh failed',
-            });
-        }
+        res.status(200).json({
+            user: result.user,
+            accessToken: result.accessToken,
+        });
     }
 
     async logout(req: Request, res: Response): Promise<void> {
-        try {
-            const refreshToken = req.cookies?.[env.COOKIE_REFRESH_TOKEN_NAME];
+        const refreshToken = req.cookies?.[env.COOKIE_REFRESH_TOKEN_NAME];
+        await authService.logout(refreshToken);
 
-            await authService.logout(refreshToken);
-            clearRefreshTokenCookie(res);
+        clearRefreshTokenCookie(res);
 
-            res.status(200).json({
-                message: 'Logged out successfully',
-            });
-        } catch {
-            clearRefreshTokenCookie(res);
-
-            res.status(200).json({
-                message: 'Logged out successfully',
-            });
-        }
+        res.status(200).json({
+            message: 'Logged out successfully',
+        });
     }
 
     async me(req: Request, res: Response): Promise<void> {
-        try {
-            if (!req.user) {
-                res.status(401).json({
-                    message: 'Unauthorized',
-                });
-                return;
-            }
+        const user = await authService.getMe(req.user!.userId);
 
-            const user = await authService.getMe(req.user.userId);
-
-            res.status(200).json({
-                user,
-            });
-        } catch (error: any) {
-            res.status(404).json({
-                message: error?.message ?? 'Failed to load current user',
-            });
-        }
+        res.status(200).json({
+            user,
+        });
     }
 }
