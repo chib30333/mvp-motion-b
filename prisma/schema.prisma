@@ -1,0 +1,627 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  PROVIDER
+  MANAGER
+  ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum ProviderApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum ServiceStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum SlotStatus {
+  ACTIVE
+  CANCELLED
+  COMPLETED
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+  REFUNDED
+}
+
+enum PaymentType {
+  BOOKING
+  SUBSCRIPTION
+}
+
+enum PaymentProvider {
+  STRIPE
+  YOOKASSA
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum EmotionTag {
+  CALM
+  JOY
+  ENERGY
+  RECOVERY
+  FOCUS
+  BALANCE
+  CONFIDENCE
+  RELAX
+  SOCIAL
+  MINDFULNESS
+}
+
+enum JoyMapStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_CANCELLED
+  BOOKING_CONFIRMED
+  SLOT_UPDATED
+  PROVIDER_APPROVED
+  PROVIDER_REJECTED
+  SUBSCRIPTION_ACTIVATED
+  PAYMENT_SUCCEEDED
+  PAYMENT_FAILED
+  PROMOTION
+  SYSTEM
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+  SOCKET
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+enum CampaignAudience {
+  CUSTOMERS
+  PROVIDERS
+  ALL
+}
+
+model User {
+  id                       String               @id @default(cuid())
+  email                    String               @unique
+  passwordHash             String?
+  role                     UserRole
+  authProvider             AuthProvider         @default(LOCAL)
+  googleId                 String?              @unique
+  firstName                String?
+  lastName                 String?
+  fullName                 String?
+  phone                    String?
+  avatarUrl                String?
+  isActive                 Boolean              @default(true)
+  emailVerifiedAt          DateTime?
+  lastLoginAt              DateTime?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  customerProfile          CustomerProfile?
+  providerProfile          ProviderProfile?
+  bookings                 Booking[]
+  reviews                  Review[]
+  joyMaps                  JoyMap[]
+  subscriptions            Subscription[]
+  payments                 Payment[]
+  refreshTokens            RefreshToken[]
+  notifications            Notification[]
+  createdCampaigns         PromotionCampaign[]  @relation("CampaignCreator")
+  promotionRecipients      PromotionRecipient[]
+  moderationActions        ProviderModerationLog[] @relation("ModerationManager")
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  revokedAt  DateTime?
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model CustomerProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  age               Int?
+  cityId            String?
+  moodNotes         String?
+  preferredRadiusKm Int?
+  onboardingDone    Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city              City?                        @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  preferences       CustomerEmotionPreference[]
+
+  @@index([cityId])
+}
+
+model CustomerEmotionPreference {
+  id                String     @id @default(cuid())
+  customerProfileId String
+  emotion           EmotionTag
+  score             Int
+  createdAt         DateTime   @default(now())
+
+  customerProfile   CustomerProfile @relation(fields: [customerProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([customerProfileId, emotion])
+  @@index([emotion])
+}
+
+model ProviderProfile {
+  id                    String                 @id @default(cuid())
+  userId                String                 @unique
+  brandName             String
+  bio                   String?
+  cityId                String
+  addressLine           String?
+  latitude              Decimal?               @db.Decimal(9, 6)
+  longitude             Decimal?               @db.Decimal(9, 6)
+  websiteUrl            String?
+  instagramUrl          String?
+  approvalStatus        ProviderApprovalStatus @default(PENDING)
+  approvalSubmittedAt   DateTime?
+  approvedAt            DateTime?
+  rejectedAt            DateTime?
+  rejectionReason       String?
+  includeInJoyMap       Boolean                @default(false)
+  averageRating         Decimal                @default(0) @db.Decimal(3, 2)
+  totalReviews          Int                    @default(0)
+  totalBookings         Int                    @default(0)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city                  City                   @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  services              Service[]
+  documents             ProviderDocument[]
+  moderationLogs        ProviderModerationLog[]
+  receivedReviews       Review[]
+  slots                 Slot[]
+
+  @@index([cityId])
+  @@index([approvalStatus])
+  @@index([includeInJoyMap])
+}
+
+model ProviderDocument {
+  id          String   @id @default(cuid())
+  providerId  String
+  fileUrl     String
+  fileName    String
+  mimeType    String?
+  uploadedAt  DateTime @default(now())
+
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+}
+
+model ProviderModerationLog {
+  id             String                 @id @default(cuid())
+  providerId     String
+  managerUserId  String
+  fromStatus     ProviderApprovalStatus?
+  toStatus       ProviderApprovalStatus
+  reason         String?
+  createdAt      DateTime               @default(now())
+
+  provider       ProviderProfile        @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  manager        User                   @relation("ModerationManager", fields: [managerUserId], references: [id], onDelete: Restrict)
+
+  @@index([providerId])
+  @@index([managerUserId])
+  @@index([toStatus])
+}
+
+model City {
+  id               String             @id @default(cuid())
+  name             String             @unique
+  slug             String             @unique
+  countryCode      String             @default("RU")
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+
+  customerProfiles CustomerProfile[]
+  providers        ProviderProfile[]
+  services         Service[]
+  slots            Slot[]
+
+  @@index([isActive])
+}
+
+model Category {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  services    Service[]
+  joyMapItems JoyMapItem[]
+
+  @@index([isActive])
+}
+
+model Service {
+  id                String          @id @default(cuid())
+  providerId        String
+  categoryId        String
+  cityId            String
+  title             String
+  slug              String          @unique
+  description       String?
+  emotionTag        EmotionTag
+  status            ServiceStatus   @default(DRAFT)
+  priceAmountMinor  Int
+  currency          String          @default("RUB")
+  durationMinutes   Int
+  capacityDefault   Int
+  ratingAverage     Decimal         @default(0) @db.Decimal(3, 2)
+  ratingCount       Int             @default(0)
+  coverImageUrl     String?
+  isFeatured        Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  provider          ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category          Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  city              City            @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  images            ServiceImage[]
+  slots             Slot[]
+  joyMapItems       JoyMapItem[]
+
+  @@index([providerId])
+  @@index([categoryId])
+  @@index([cityId])
+  @@index([status])
+  @@index([emotionTag])
+  @@index([isFeatured])
+}
+
+model ServiceImage {
+  id         String   @id @default(cuid())
+  serviceId  String
+  imageUrl   String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+}
+
+model Slot {
+  id                String          @id @default(cuid())
+  serviceId         String
+  providerId        String
+  cityId            String
+  startsAt          DateTime
+  endsAt            DateTime
+  status            SlotStatus      @default(ACTIVE)
+  emotionTag        EmotionTag
+  capacity          Int
+  bookedCount       Int             @default(0)
+  availableCount    Int
+  priceAmountMinor  Int
+  currency          String          @default("RUB")
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  service           Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  provider          ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  city              City            @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  bookings          Booking[]
+
+  @@index([serviceId])
+  @@index([providerId])
+  @@index([cityId])
+  @@index([startsAt])
+  @@index([status])
+  @@index([emotionTag])
+  @@index([providerId, startsAt])
+}
+
+model Booking {
+  id                    String        @id @default(cuid())
+  userId                String
+  slotId                String
+  status                BookingStatus @default(PENDING_PAYMENT)
+  totalAmountMinor      Int
+  currency              String        @default("RUB")
+  qrCodeValue           String?       @unique
+  notes                 String?
+  cancellationReason    String?
+  cancelledAt           DateTime?
+  refundAmountMinor     Int?
+  checkedInAt           DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slot                  Slot          @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  payment               Payment?
+  review                Review?
+
+  @@index([userId])
+  @@index([slotId])
+  @@index([status])
+  @@index([createdAt])
+  @@unique([userId, slotId])
+}
+
+model SubscriptionPlan {
+  id                String         @id @default(cuid())
+  code              String         @unique
+  name              String
+  description       String?
+  priceAmountMinor  Int
+  currency          String         @default("RUB")
+  intervalMonths    Int            @default(1)
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  subscriptions     Subscription[]
+
+  @@index([isActive])
+}
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String
+  planId                 String
+  provider               PaymentProvider
+  status                 SubscriptionStatus @default(INCOMPLETE)
+  externalSubscriptionId String?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  startedAt              DateTime?
+  endedAt                DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payments               Payment[]
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+}
+
+model Payment {
+  id                    String           @id @default(cuid())
+  userId                String
+  bookingId             String?          @unique
+  subscriptionId        String?
+  type                  PaymentType
+  provider              PaymentProvider
+  status                PaymentStatus    @default(PENDING)
+  amountMinor           Int
+  currency              String           @default("RUB")
+  externalPaymentId     String?          @unique
+  idempotencyKey        String?          @unique
+  providerPayload       Json?
+  paidAt                DateTime?
+  refundedAt            DateTime?
+  failureReason         String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking               Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  subscription          Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  events                PaymentEvent[]
+
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([type])
+  @@index([provider])
+  @@index([status])
+  @@index([paidAt])
+}
+
+model PaymentEvent {
+  id                String    @id @default(cuid())
+  paymentId         String
+  providerEventId   String?
+  eventType         String
+  payload           Json
+  createdAt         DateTime  @default(now())
+
+  payment           Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([providerEventId])
+}
+
+model JoyMap {
+  id                String       @id @default(cuid())
+  userId            String
+  status            JoyMapStatus @default(ACTIVE)
+  weekStart         DateTime
+  inputSummary      String?
+  promptText        String?
+  rawAiResponse     String?
+  version           Int          @default(1)
+  generatedAt       DateTime     @default(now())
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items             JoyMapItem[]
+
+  @@index([userId])
+  @@index([weekStart])
+  @@index([status])
+}
+
+model JoyMapItem {
+  id                  String      @id @default(cuid())
+  joyMapId            String
+  dayOfWeek           Int
+  suggestedText       String
+  emotionTag          EmotionTag
+  categoryId          String?
+  suggestedServiceId  String?
+  sortOrder           Int         @default(0)
+
+  joyMap              JoyMap      @relation(fields: [joyMapId], references: [id], onDelete: Cascade)
+  category            Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  suggestedService    Service?    @relation(fields: [suggestedServiceId], references: [id], onDelete: SetNull)
+
+  @@index([joyMapId])
+  @@index([categoryId])
+  @@index([suggestedServiceId])
+  @@index([dayOfWeek])
+}
+
+model Review {
+  id                String          @id @default(cuid())
+  bookingId         String          @unique
+  userId            String
+  providerId        String
+  rating            Int
+  comment           String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  booking           Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([providerId])
+  @@index([rating])
+}
+
+model Notification {
+  id                String               @id @default(cuid())
+  userId            String
+  type              NotificationType
+  channel           NotificationChannel
+  status            NotificationStatus   @default(PENDING)
+  title             String
+  message           String
+  payload           Json?
+  sentAt            DateTime?
+  readAt            DateTime?
+  createdAt         DateTime             @default(now())
+
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([channel])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PromotionCampaign {
+  id                String               @id @default(cuid())
+  createdByUserId   String
+  title             String
+  content           String
+  audience          CampaignAudience
+  isActive          Boolean              @default(true)
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  creator           User                 @relation("CampaignCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  recipients        PromotionRecipient[]
+
+  @@index([createdByUserId])
+  @@index([audience])
+  @@index([isActive])
+}
+
+model PromotionRecipient {
+  id                String               @id @default(cuid())
+  campaignId        String
+  userId            String
+  channel           NotificationChannel
+  deliveredAt       DateTime?
+  createdAt         DateTime             @default(now())
+
+  campaign          PromotionCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, userId, channel])
+  @@index([userId])
+}
