@@ -1,14 +1,13 @@
 import type { NextFunction, Request, Response } from 'express';
 import { UserRole } from '@prisma/client';
 import { verifyAccessToken } from '../lib/jwt.ts';
+import { UnauthorizedError } from '../errors/UnauthorizedError.ts';
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({
-            message: 'Unauthorized: missing or invalid authorization header',
-        });
+        next(new UnauthorizedError('Missing or invalid authorization header'));
         return;
     }
 
@@ -25,8 +24,6 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
         next();
     } catch {
-        res.status(401).json({
-            message: 'Unauthorized: invalid or expired access token',
-        });
+        next(new UnauthorizedError('Invalid or expired access token'));
     }
 }
