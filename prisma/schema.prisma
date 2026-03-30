@@ -24,6 +24,7 @@ enum AuthProvider {
 }
 
 enum ProviderApprovalStatus {
+  DRAFT
   PENDING
   APPROVED
   REJECTED
