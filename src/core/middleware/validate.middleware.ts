@@ -38,3 +38,5 @@ export function validate(schemas: RequestParts) {
         }
     };
 }
+
+export const validateBody = (schema: ZodType<any>) => validate({ body: schema });

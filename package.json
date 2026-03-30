@@ -10,9 +10,10 @@
     "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsx src/app.ts",
-    "dev": "tsx watch src/app.ts"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "seed": "prisma db seed"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -35,6 +36,7 @@
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "express": "^5.2.1",
     "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.3",
     "ms": "^2.1.3",
