@@ -136,6 +136,13 @@ export const providersService = {
                 ...(input.includeInJoyMap !== undefined && {
                     includeInJoyMap: input.includeInJoyMap,
                 }),
+
+                // Important:
+                // Do NOT auto-change approvalStatus here.
+                // If profile was REJECTED, it stays REJECTED until explicit resubmission.
+                // If profile was DRAFT, it stays DRAFT.
+                // If profile was APPROVED, it stays APPROVED unless manager changes it later.
+                // If profile was PENDING, it stays PENDING.
             },
             include: {
                 city: {
@@ -191,15 +198,15 @@ export const providersService = {
             throw new BadRequestError("Provider profile is already approved");
         }
 
-        if (profile.cityId) {
-            await ensureCityExists(profile.cityId);
-        }
+        await ensureCityExists(profile.cityId);
 
         const updatedProfile = await prisma.providerProfile.update({
             where: { userId },
             data: {
                 approvalStatus: ProviderApprovalStatus.PENDING,
                 approvalSubmittedAt: new Date(),
+
+                // Clear previous rejection markers only on explicit resubmission
                 rejectedAt: null,
                 rejectionReason: null,
             },
