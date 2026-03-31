@@ -1,49 +1,50 @@
 import { Router } from "express";
 import { bookingsController } from "./bookings.controller.ts";
-import { authMiddleware } from "../../core/middleware/auth.middleware.ts";
+import { requireAuth } from "../../core/middleware/auth.middleware.ts";
 import { requireRole } from "../../core/middleware/role.middleware.ts";
 import { asyncHandler } from "../../core/utils/asyncHandler.ts";
+import { UserRole } from "@prisma/client";
 
 const router = Router();
 
 // Customer / generic authenticated user
 router.post(
     "/bookings",
-    authMiddleware,
-    requireRole(["CUSTOMER", "PROVIDER"]),
+    requireAuth,
+    requireRole(UserRole.CUSTOMER, UserRole.PROVIDER),
     asyncHandler(bookingsController.createBooking)
 );
 
 router.get(
     "/bookings/me",
-    authMiddleware,
+    requireAuth,
     asyncHandler(bookingsController.getMyBookings)
 );
 
 router.get(
     "/bookings/:id",
-    authMiddleware,
+    requireAuth,
     asyncHandler(bookingsController.getMyBookingById)
 );
 
 router.post(
     "/bookings/:bookingId/cancel",
-    authMiddleware,
+    requireAuth,
     asyncHandler(bookingsController.cancelBooking)
 );
 
 // Provider
 router.get(
     "/provider/bookings",
-    authMiddleware,
-    requireRole(["PROVIDER"]),
+    requireAuth,
+    requireRole(UserRole.PROVIDER),
     asyncHandler(bookingsController.getProviderBookings)
 );
 
 router.get(
     "/provider/bookings/:id",
-    authMiddleware,
-    requireRole(["PROVIDER"]),
+    requireAuth,
+    requireRole(UserRole.PROVIDER),
     asyncHandler(bookingsController.getProviderBookingById)
 );
 
