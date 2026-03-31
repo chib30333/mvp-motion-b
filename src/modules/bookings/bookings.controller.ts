@@ -8,7 +8,6 @@ import {
     bookingIdRouteParamSchema
 } from "./bookings.schema.ts";
 import { toBookingResponseDto } from "./bookings.mapper.ts";
-import { ValidationError } from "../../core/errors/ValidationError.ts";
 
 export class BookingsController {
     createBooking = async (req: Request, res: Response) => {
