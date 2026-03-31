@@ -402,6 +402,7 @@ model Booking {
   cancellationReason String?
   cancelledAt        DateTime?
   refundAmount       Int?
+  paymentExpiresAt   DateTime?
   checkedInAt        DateTime?
   completedAt        DateTime?
   createdAt          DateTime      @default(now())
