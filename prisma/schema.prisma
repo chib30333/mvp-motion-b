@@ -531,18 +531,19 @@ model JoyMap {
 }
 
 model JoyMapItem {
-  id                 String     @id @default(cuid())
+  id                 String      @id @default(cuid())
   joyMapId           String
   dayOfWeek          Int
-  suggestedText      String
+  title              String
+  reason             String
   emotionTag         EmotionTag
   categoryId         String?
   suggestedServiceId String?
-  sortOrder          Int        @default(0)
+  sortOrder          Int         @default(0)
 
-  joyMap           JoyMap    @relation(fields: [joyMapId], references: [id], onDelete: Cascade)
-  category         Category? @relation(fields: [categoryId], references: [id])
-  suggestedService Service?  @relation(fields: [suggestedServiceId], references: [id])
+  joyMap             JoyMap      @relation(fields: [joyMapId], references: [id], onDelete: Cascade)
+  category           Category?   @relation(fields: [categoryId], references: [id])
+  suggestedService   Service?    @relation(fields: [suggestedServiceId], references: [id])
 
   @@index([joyMapId])
   @@index([categoryId])
