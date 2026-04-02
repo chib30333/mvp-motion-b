@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { type ZodType, ZodError } from 'zod';
+import { type ZodType, ZodObject, ZodError } from 'zod';
 import { BadRequestError } from '../errors/BadRequestError.ts';
 
 type RequestParts = {
@@ -34,6 +34,18 @@ export function validate(schemas: RequestParts) {
                 return;
             }
 
+            next(error);
+        }
+    };
+}
+
+export function validateQuery(schema: ZodObject) {
+    return (req: Request, _res: Response, next: NextFunction) => {
+        try {
+            const parsed = schema.parse(req.query);
+            req.query = parsed as any; // safe enough for MVP
+            next();
+        } catch (error) {
             next(error);
         }
     };
