@@ -2,11 +2,14 @@
 
 import type { Request, Response } from 'express';
 import { paymentsService } from './payments.service.ts';
+import { bookingIdRouteParamSchema } from '../bookings/bookings.schema.ts';
 
 export const paymentsController = {
     async createBookingCheckout(req: Request, res: Response) {
+        const { bookingId } = bookingIdRouteParamSchema.parse(req.params)
+
         const result = await paymentsService.createBookingCheckout({
-            bookingId: req.params.bookingId,
+            bookingId: bookingId,
             userId: req.user!.userId,
             provider: req.body.provider,
         });

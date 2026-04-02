@@ -1,30 +1,24 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { z } from 'zod';
 
-dotenv.config();
+const envSchema = z.object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().default(5000),
 
-function required(name: string): string {
-    const value = process.env[name];
-    if (!value) {
-        throw new Error(`Missing required environment variable: ${name}`);
-    }
-    return value;
-}
+    DATABASE_URL: z.string().min(1),
 
-export const env = {
-    NODE_ENV: process.env.NODE_ENV ?? 'development',
-    PORT: Number(process.env.PORT ?? 5000),
+    JWT_ACCESS_SECRET: z.string().min(1),
+    JWT_REFRESH_SECRET: z.string().min(1),
 
-    DATABASE_URL: required('DATABASE_URL'),
+    FRONTEND_URL: z.string().url(),
 
-    JWT_ACCESS_SECRET: required('JWT_ACCESS_SECRET'),
-    JWT_REFRESH_SECRET: required('JWT_REFRESH_SECRET'),
-    JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN ?? '15m',
-    JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
+    STRIPE_SECRET_KEY: z.string().min(1),
+    STRIPE_WEBHOOK_SECRET: z.string().min(1),
 
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
+    YOOKASSA_SHOP_ID: z.string().min(1),
+    YOOKASSA_SECRET_KEY: z.string().min(1),
+});
 
-    FRONTEND_URL: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+const parsedEnv = envSchema.parse(process.env);
 
-    COOKIE_REFRESH_TOKEN_NAME: process.env.COOKIE_REFRESH_TOKEN_NAME ?? 'refreshToken',
-};
+export const env = parsedEnv;
