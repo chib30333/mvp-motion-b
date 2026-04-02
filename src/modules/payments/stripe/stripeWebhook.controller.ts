@@ -1,5 +1,4 @@
 // src/modules/payments/stripe/stripeWebhook.controller.ts
-
 import type { Request, Response } from 'express';
 import { stripeService } from './stripe.service.ts';
 import { paymentsService } from '../payments.service.ts';
