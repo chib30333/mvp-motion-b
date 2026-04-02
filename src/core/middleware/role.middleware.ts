@@ -5,14 +5,18 @@ import { UnauthorizedError } from '../errors/UnauthorizedError.ts';
 
 export function requireRole(...allowedRoles: UserRole[]) {
     return (req: Request, _res: Response, next: NextFunction): void => {
-        if (!req.user) {
-            next(new UnauthorizedError('Unauthorized'));
-            return;
+        const user = req.user as { id: string; role: UserRole } | undefined;
+
+        if (!user) {
+            const error = new Error("Unauthorized");
+            (error as any).statusCode = 401;
+            return next(error);
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
-            next(new ForbiddenError('Insufficient permissions'));
-            return;
+        if (!allowedRoles.includes(user.role)) {
+            const error = new Error("Forbidden");
+            (error as any).statusCode = 403;
+            return next(error);
         }
 
         next();
