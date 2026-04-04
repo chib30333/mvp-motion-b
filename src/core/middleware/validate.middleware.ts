@@ -25,7 +25,9 @@ export function validate(schemas: RequestParts) {
 
             next();
         } catch (error) {
+            console.log("error default:", error)
             if (error instanceof ZodError) {
+                console.log("veve")
                 next(
                     new BadRequestError('Validation failed', {
                         issues: error.issues,
