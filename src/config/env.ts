@@ -10,6 +10,13 @@ const envSchema = z.object({
     JWT_ACCESS_SECRET: z.string().min(1),
     JWT_REFRESH_SECRET: z.string().min(1),
 
+    JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
+    JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
+
+    GOOGLE_CLIENT_ID: z.string().min(1),
+    GOOGLE_CLIENT_SECRET: z.string().min(1),
+    GOOGLE_CALLBACK_URL: z.string().url(),
+
     FRONTEND_URL: z.string().url(),
 
     STRIPE_SECRET_KEY: z.string().min(1),
@@ -17,6 +24,8 @@ const envSchema = z.object({
 
     YOOKASSA_SHOP_ID: z.string().min(1),
     YOOKASSA_SECRET_KEY: z.string().min(1),
+
+    COOKIE_REFRESH_TOKEN_NAME: z.string().default('refresh_token'),
 });
 
 const parsedEnv = envSchema.parse(process.env);
