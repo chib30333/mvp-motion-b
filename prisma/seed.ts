@@ -3,19 +3,18 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
 import 'dotenv/config';
+import {
+    referenceCategories,
+    referenceCities,
+    referenceSubscriptionPlans,
+} from '../src/modules/reference-data/referenceData.data.ts';
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function seedCities() {
-    const cities = [
-        { name: 'Moscow', slug: 'moscow', countryCode: 'RU', isActive: true },
-        { name: 'Saint Petersburg', slug: 'saint-petersburg', countryCode: 'RU', isActive: true },
-        { name: 'Kazan', slug: 'kazan', countryCode: 'RU', isActive: true },
-    ];
-
-    for (const city of cities) {
+    for (const city of referenceCities) {
         await prisma.city.upsert({
             where: { slug: city.slug },
             update: {
@@ -31,20 +30,7 @@ async function seedCities() {
 }
 
 async function seedCategories() {
-    const categories = [
-        { name: 'Yoga', slug: 'yoga', description: 'Yoga and mindful movement', isActive: true },
-        { name: 'Dance', slug: 'dance', description: 'Dance and joyful movement classes', isActive: true },
-        { name: 'SPA', slug: 'spa', description: 'Relaxation and recovery services', isActive: true },
-        { name: 'Workshops', slug: 'workshops', description: 'Emotional wellness workshops', isActive: true },
-        { name: 'Meditation', slug: 'meditation', description: 'Meditation and stillness practices', isActive: true },
-        { name: 'Breathwork', slug: 'breathwork', description: 'Breath-based wellness sessions', isActive: true },
-        { name: 'Stretching', slug: 'stretching', description: 'Stretching and mobility sessions', isActive: true },
-        { name: 'Massage', slug: 'massage', description: 'Massage and body recovery services', isActive: true },
-        { name: 'Sound Healing', slug: 'sound-healing', description: 'Sound healing and restorative sessions', isActive: true },
-        { name: 'Mindfulness', slug: 'mindfulness', description: 'Mindfulness and awareness practices', isActive: true },
-    ];
-
-    for (const category of categories) {
+    for (const category of referenceCategories) {
         await prisma.category.upsert({
             where: { slug: category.slug },
             update: {
@@ -60,26 +46,28 @@ async function seedCategories() {
 }
 
 async function seedSubscriptionPlans() {
-    await prisma.subscriptionPlan.upsert({
-        where: { code: 'joy-map-monthly' },
-        update: {
-            name: 'Joy Map Monthly',
-            description: 'Monthly subscription for AI Joy Map access',
-            priceAmount: 49900,
-            currency: 'RUB',
-            intervalMonths: 1,
-            isActive: true,
-        },
-        create: {
-            code: 'joy-map-monthly',
-            name: 'Joy Map Monthly',
-            description: 'Monthly subscription for AI Joy Map access',
-            priceAmount: 49900,
-            currency: 'RUB',
-            intervalMonths: 1,
-            isActive: true,
-        },
-    });
+    for (const plan of referenceSubscriptionPlans) {
+        await prisma.subscriptionPlan.upsert({
+            where: { code: plan.code },
+            update: {
+                name: plan.name,
+                description: plan.description,
+                priceAmount: plan.priceAmount,
+                currency: plan.currency,
+                intervalMonths: plan.intervalMonths,
+                isActive: plan.isActive,
+            },
+            create: {
+                code: plan.code,
+                name: plan.name,
+                description: plan.description,
+                priceAmount: plan.priceAmount,
+                currency: plan.currency,
+                intervalMonths: plan.intervalMonths,
+                isActive: plan.isActive,
+            },
+        });
+    }
 
     console.log('Seeded subscription plans');
 }
