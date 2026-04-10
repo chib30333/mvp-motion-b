@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as slotsController from "./slots.controller.ts";
-import { validateBody } from "../../core/middleware/validate.middleware.ts";
+import { validate } from "../../core/middleware/validate.middleware.ts";
 import { requireAuth } from "../../core/middleware/auth.middleware.ts";
 import { requireRole } from "../../core/middleware/role.middleware.ts";
 import {
@@ -8,6 +8,7 @@ import {
     createSlotSchema,
     providerSlotsQuerySchema,
     publicServiceSlotsSchema,
+    serviceSlotParamsSchema,
     updateSlotSchema,
 } from "./slots.schema.ts";
 
@@ -18,7 +19,7 @@ router.post(
     "/provider/slots",
     requireAuth,
     requireRole("PROVIDER"),
-    validateBody(createSlotSchema),
+    validate({ body: createSlotSchema }),
     slotsController.createSlot
 );
 
@@ -26,7 +27,10 @@ router.patch(
     "/provider/slots/:slotId",
     requireAuth,
     requireRole("PROVIDER"),
-    validateBody(updateSlotSchema),
+    validate({
+        params: cancelSlotSchema,
+        body: updateSlotSchema,
+    }),
     slotsController.updateSlot
 );
 
@@ -34,7 +38,7 @@ router.post(
     "/provider/slots/:slotId/cancel",
     requireAuth,
     requireRole("PROVIDER"),
-    validateBody(cancelSlotSchema),
+    validate({ params: cancelSlotSchema }),
     slotsController.cancelSlot
 );
 
@@ -42,14 +46,17 @@ router.get(
     "/provider/slots",
     requireAuth,
     requireRole("PROVIDER"),
-    validateBody(providerSlotsQuerySchema),
+    validate({ query: providerSlotsQuerySchema }),
     slotsController.getProviderSlots
 );
 
 // Public/customer route
 router.get(
     "/services/:serviceId/slots",
-    validateBody(publicServiceSlotsSchema),
+    validate({
+        params: serviceSlotParamsSchema,
+        query: publicServiceSlotsSchema,
+    }),
     slotsController.getPublicServiceSlots
 );
 

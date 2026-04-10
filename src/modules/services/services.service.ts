@@ -1,5 +1,6 @@
 import { Prisma, ProviderApprovalStatus, ServiceStatus } from "@prisma/client";
 import { prisma } from "../../core/db/prisma.ts";
+import { DEFAULT_CURRENCY } from "../reference-data/referenceData.data.ts";
 import { NotFoundError } from "../../core/errors/NotFoundError.ts";
 import { ForbiddenError } from "../../core/errors/ForbiddenError.ts";
 import { ConflictError } from "../../core/errors/ConflictError.ts";
@@ -136,7 +137,7 @@ export const servicesService = {
                 emotionTag: input.emotionTag,
                 status: input.status ?? ServiceStatus.DRAFT,
                 priceAmount: input.priceAmount,
-                currency: "RUB",
+                currency: DEFAULT_CURRENCY,
                 durationMinutes: input.durationMinutes,
                 capacityDefault: input.capacityDefault,
                 coverImageUrl: input.coverImageUrl ?? null,
