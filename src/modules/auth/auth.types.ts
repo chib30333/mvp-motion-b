@@ -36,3 +36,12 @@ export type GoogleLoginInput = {
     idToken: string;
     role?: UserRole;
 };
+
+export type ForgotPasswordInput = {
+    email: string;
+};
+
+export type ResetPasswordInput = {
+    token: string;
+    password: string;
+};
