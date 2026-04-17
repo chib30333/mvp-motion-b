@@ -154,6 +154,7 @@ model User {
   customerProfile     CustomerProfile?
   providerProfile     ProviderProfile?
   refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
   bookings            Booking[]
   subscriptions       Subscription[]
   joyMaps             JoyMap[]
@@ -164,6 +165,20 @@ model User {
 
   @@index([role])
   @@index([isActive])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model RefreshToken {

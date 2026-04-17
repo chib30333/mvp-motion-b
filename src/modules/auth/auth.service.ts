@@ -12,11 +12,14 @@ import {
     signRefreshToken,
     verifyRefreshToken,
 } from '../../core/lib/jwt.ts';
+import { sendPasswordResetEmail } from '../../core/lib/mail.ts';
 import { AuthRepository } from './auth.repository.ts';
 import type {
     AuthResponse,
+    ForgotPasswordInput,
     GoogleLoginInput,
     LoginInput,
+    ResetPasswordInput,
     RegisterInput,
     SafeUser,
 } from './auth.types.ts';
@@ -33,6 +36,10 @@ function buildFullName(firstName?: string, lastName?: string): string | undefine
 
 function sha256(value: string): string {
     return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function generateSecureToken(): string {
+    return crypto.randomBytes(32).toString('hex');
 }
 
 function parseExpiryToDate(expiresIn: string): Date {
@@ -326,5 +333,74 @@ export class AuthService {
         }
 
         return this.mapSafeUser(user);
+    }
+
+    async requestPasswordReset(
+        input: ForgotPasswordInput
+    ): Promise<{ message: string; debugResetToken?: string; debugResetUrl?: string }> {
+        const email = normalizeEmail(input.email);
+        const user = await this.authRepository.findUserByEmail(email);
+
+        if (!user || !user.isActive || !user.passwordHash) {
+            return {
+                message:
+                    'If an account with that email exists, password reset instructions have been sent.',
+            };
+        }
+
+        const rawToken = generateSecureToken();
+        const tokenHash = sha256(rawToken);
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        const resetUrl = `${env.FRONTEND_URL.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
+
+        await this.authRepository.invalidatePasswordResetTokensForUser(user.id);
+        await this.authRepository.createPasswordResetToken({
+            userId: user.id,
+            tokenHash,
+            expiresAt,
+        });
+        await sendPasswordResetEmail({
+            email: user.email,
+            resetUrl,
+        });
+
+        return {
+            message:
+                'If an account with that email exists, password reset instructions have been sent.',
+            ...(env.NODE_ENV !== 'production'
+                ? {
+                    debugResetToken: rawToken,
+                    debugResetUrl: resetUrl,
+                }
+                : {}),
+        };
+    }
+
+    async resetPassword(input: ResetPasswordInput): Promise<{ message: string }> {
+        const tokenHash = sha256(input.token);
+        const resetToken = await this.authRepository.findActivePasswordResetTokenByHash(
+            tokenHash
+        );
+
+        if (!resetToken) {
+            throw new UnauthorizedError('Password reset token is invalid or expired');
+        }
+
+        const user = await this.authRepository.findUserById(resetToken.userId);
+
+        if (!user || !user.isActive) {
+            throw new UnauthorizedError('User not found or inactive');
+        }
+
+        const passwordHash = await hashValue(input.password);
+
+        await this.authRepository.updateUserPassword(user.id, passwordHash);
+        await this.authRepository.markPasswordResetTokenUsed(resetToken.id);
+        await this.authRepository.invalidatePasswordResetTokensForUser(user.id);
+        await this.authRepository.revokeAllUserRefreshTokens(user.id);
+
+        return {
+            message: 'Password has been reset successfully',
+        };
     }
 }
