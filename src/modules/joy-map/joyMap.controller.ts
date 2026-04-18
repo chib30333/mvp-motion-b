@@ -10,7 +10,7 @@ export class JoyMapController {
         next: NextFunction
     ) => {
         try {
-            const userId = (req as any).user.id;
+            const userId = req.user!.userId;
             const result = await this.joyMapService.generateCurrentWeek(userId, req.body);
             res.status(200).json(result);
         } catch (error) {
@@ -24,7 +24,7 @@ export class JoyMapController {
         next: NextFunction
     ) => {
         try {
-            const userId = (req as any).user.id;
+            const userId = req.user!.userId;
             const result = await this.joyMapService.getCurrentWeek(userId);
             res.status(200).json(result);
         } catch (error) {
@@ -38,7 +38,7 @@ export class JoyMapController {
         next: NextFunction
     ) => {
         try {
-            const userId = (req as any).user.id;
+            const userId = req.user!.userId;
             const limit = Number(req.query.limit ?? 8);
             const result = await this.joyMapService.getHistory(userId, limit);
             res.status(200).json(result);

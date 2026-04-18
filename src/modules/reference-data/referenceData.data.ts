@@ -1,6 +1,7 @@
 import { EmotionTag, PaymentProvider } from "@prisma/client";
 
 export const DEFAULT_CURRENCY = "EUR";
+export const PROVIDER_COMMISSION_PERCENT = 15;
 
 export const referenceCities = [
   { name: "Berlin", slug: "berlin", countryCode: "DE", isActive: true },
@@ -352,6 +353,62 @@ export const referenceSubscriptionPlans = [
     paymentProviders: [PaymentProvider.STRIPE, PaymentProvider.YOOKASSA],
   },
 ] as const;
+
+export const referenceWalletTopUpMethods = [
+  {
+    code: "CARD",
+    label: "Cards",
+    description: "Standard card top-up flow for customer wallets and checkout.",
+    enabled: true,
+  },
+  {
+    code: "SBER",
+    label: "Sber",
+    description: "Reserved for Sber-based top-ups when local payment support is enabled.",
+    enabled: false,
+  },
+  {
+    code: "WILDBERRIES_PAY",
+    label: "Wildberries Pay",
+    description: "Reserved for future Wildberries Pay wallet top-ups.",
+    enabled: false,
+  },
+] as const;
+
+export const referenceNotificationChannels = {
+  push: ["Telegram", "App"],
+  inApp: ["In-app messages"],
+} as const;
+
+export const referenceDashboardBlueprints = {
+  customer: {
+    web: [
+      "Profile",
+      "Bookings Dashboard",
+      "Wallet & Payments",
+      "Notifications",
+    ],
+  },
+  provider: {
+    webPanel: [
+      "Business Profile",
+      "Orders & Bookings",
+      "Analytics Dashboard",
+      "Payouts",
+      "Marketing",
+    ],
+  },
+  admin: {
+    adminPanel: [
+      "Dashboard Overview",
+      "Providers Management",
+      "Customers Management",
+      "Financials",
+      "Content Moderation",
+      "Marketing Tools",
+    ],
+  },
+} as const;
 
 export const emotionMetadata = [
   {
