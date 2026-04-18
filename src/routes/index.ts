@@ -12,11 +12,12 @@ import moderationRoutes from "../modules/moderation/moderation.routes.ts";
 import analyticsRoutes from "../modules/analytics/analytics.routes.ts";
 import referenceDataRoutes from "../modules/reference-data/referenceData.routes.ts";
 import managerDashboardRoutes from "../modules/manager-dashboard/managerDashboard.routes.ts";
+import dashboardsRoutes from "../modules/dashboards/dashboards.routes.ts";
 
 import { prisma } from '../core/db/prisma.ts';
 
 const router = Router();
-// const joyMapModule = createJoyMapModule(prisma)
+// const joyMapModule = createJoyMapModule(prisma);
 
 router.use('/auth', authRoutes);
 router.use("/reference-data", referenceDataRoutes);
@@ -25,9 +26,10 @@ router.use("/providers", providersRoutes);
 router.use("/", servicesRoutes);
 router.use("/", slotsRoutes);
 router.use("/", bookingsRoutes);
+// router.use("/joy-map", joyMapModule.routes);
+router.use("/dashboards", dashboardsRoutes);
 router.use('/payments', paymentsRouter);
 router.use('/webhooks', paymentsWebhookRouter);
-// router.use('/joy-map', joyMapModule.routes);
 router.use("/manager", moderationRoutes);
 router.use("/manager/analytics", analyticsRoutes);
 router.use("/manager/dashboard", managerDashboardRoutes);

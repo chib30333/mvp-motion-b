@@ -1,11 +1,15 @@
 import { prisma } from "../../core/db/prisma.ts";
 import {
   emotionMetadata,
+  PROVIDER_COMMISSION_PERCENT,
   referenceCategoryTaxonomy,
   referenceCategories,
   referenceCities,
+  referenceDashboardBlueprints,
+  referenceNotificationChannels,
   referenceSmartFilterCombos,
   referenceSubscriptionPlans,
+  referenceWalletTopUpMethods,
 } from "./referenceData.data.ts";
 
 export const referenceDataService = {
@@ -32,6 +36,10 @@ export const referenceDataService = {
       emotionTags: emotionMetadata,
       categoryTaxonomy: referenceCategoryTaxonomy,
       smartFilterCombos: referenceSmartFilterCombos,
+      productBlueprints: referenceDashboardBlueprints,
+      walletTopUpMethods: referenceWalletTopUpMethods,
+      notificationChannels: referenceNotificationChannels,
+      providerCommissionPercent: PROVIDER_COMMISSION_PERCENT,
       subscriptionPlans:
         subscriptionPlans.length > 0
           ? subscriptionPlans.map((plan) => ({
