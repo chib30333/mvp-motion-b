@@ -1,8 +1,10 @@
 import { prisma } from "../../core/db/prisma.ts";
 import {
   emotionMetadata,
+  referenceCategoryTaxonomy,
   referenceCategories,
   referenceCities,
+  referenceSmartFilterCombos,
   referenceSubscriptionPlans,
 } from "./referenceData.data.ts";
 
@@ -28,6 +30,8 @@ export const referenceDataService = {
         categories.length > 0 ? categories : referenceCategories.map((category) => ({ ...category })),
       cities: cities.length > 0 ? cities : referenceCities.map((city) => ({ ...city })),
       emotionTags: emotionMetadata,
+      categoryTaxonomy: referenceCategoryTaxonomy,
+      smartFilterCombos: referenceSmartFilterCombos,
       subscriptionPlans:
         subscriptionPlans.length > 0
           ? subscriptionPlans.map((plan) => ({

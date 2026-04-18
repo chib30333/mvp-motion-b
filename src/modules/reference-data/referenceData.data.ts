@@ -11,42 +11,332 @@ export const referenceCities = [
   { name: "Warsaw", slug: "warsaw", countryCode: "PL", isActive: true },
 ] as const;
 
-export const referenceCategories = [
+type SmartFacetKey =
+  | "emotionMood"
+  | "socialContext"
+  | "activityStyle"
+  | "personalGrowth"
+  | "useCase"
+  | "pricingStyle";
+
+type TaxonomyOption = {
+  name: string;
+  slug: string;
+  description: string;
+};
+
+type TaxonomyGroup = {
+  key: SmartFacetKey;
+  label: string;
+  emoji?: string;
+  description: string;
+  options: TaxonomyOption[];
+};
+
+export const referenceCategoryTaxonomy: TaxonomyGroup[] = [
   {
-    name: "Yoga",
-    slug: "yoga",
-    description: "Grounding movement sessions for calm, flexibility, and emotional reset.",
-    isActive: true,
+    key: "emotionMood",
+    label: "Emotional / Mood-Based",
+    emoji: "❤️",
+    description:
+      "High-intent feeling states that help users discover experiences by the mood they want to create.",
+    options: [
+      {
+        name: "Romantic",
+        slug: "romantic",
+        description: "Intimate experiences designed for warmth, closeness, and memorable shared moments.",
+      },
+      {
+        name: "Relaxing",
+        slug: "relaxing",
+        description: "Low-pressure experiences that help people unwind, recharge, and slow down.",
+      },
+      {
+        name: "Fun & Entertaining",
+        slug: "fun-entertaining",
+        description: "Playful, upbeat activities built around joy, laughter, and light energy.",
+      },
+      {
+        name: "Adventurous",
+        slug: "adventurous",
+        description: "Discovery-led experiences that feel bold, active, and a little outside the routine.",
+      },
+      {
+        name: "Exciting / Adrenaline",
+        slug: "exciting-adrenaline",
+        description: "Fast-paced experiences for thrill, anticipation, and elevated energy.",
+      },
+      {
+        name: "Inspiring",
+        slug: "inspiring",
+        description: "Experiences that feel uplifting, expansive, and creatively energizing.",
+      },
+      {
+        name: "Luxurious",
+        slug: "luxurious",
+        description: "Premium experiences centered on comfort, indulgence, and elevated service.",
+      },
+      {
+        name: "Mindful & Spiritual",
+        slug: "mindful-spiritual",
+        description: "Grounding experiences focused on presence, reflection, ritual, and inner calm.",
+      },
+      {
+        name: "Creative",
+        slug: "creative",
+        description: "Hands-on experiences that help people express, make, explore, and imagine.",
+      },
+      {
+        name: "Social & Connecting",
+        slug: "social-connecting",
+        description: "Shared experiences that encourage conversation, chemistry, and togetherness.",
+      },
+    ],
   },
   {
-    name: "Dance",
-    slug: "dance",
-    description: "Joyful movement classes that support energy, confidence, and release.",
-    isActive: true,
+    key: "socialContext",
+    label: "Social Context",
+    emoji: "👥",
+    description:
+      "Context tags that help the system understand who the experience is for.",
+    options: [
+      {
+        name: "For Two (Couples)",
+        slug: "for-two-couples",
+        description: "Pair-focused experiences tailored for couples or two-person plans.",
+      },
+      {
+        name: "Solo Experiences",
+        slug: "solo-experiences",
+        description: "Experiences that work especially well for one person exploring alone.",
+      },
+      {
+        name: "With Friends",
+        slug: "with-friends",
+        description: "Shared activities designed for social groups and friend energy.",
+      },
+      {
+        name: "Family-Friendly",
+        slug: "family-friendly",
+        description: "Options that are accessible, comfortable, and enjoyable for families.",
+      },
+      {
+        name: "Group Activities",
+        slug: "group-activities",
+        description: "Experiences suited to several people booking together.",
+      },
+      {
+        name: "Team Building / Corporate",
+        slug: "team-building-corporate",
+        description: "Formats built for teams, offsites, workplace wellness, or company events.",
+      },
+    ],
   },
   {
-    name: "SPA",
-    slug: "spa",
-    description: "Premium restorative treatments for recovery, deep rest, and balance.",
-    isActive: true,
+    key: "activityStyle",
+    label: "Activity Style",
+    emoji: "⚡️",
+    description:
+      "Delivery and format tags that describe how the experience actually feels on the ground.",
+    options: [
+      {
+        name: "Extreme / Adrenaline",
+        slug: "extreme-adrenaline",
+        description: "High-thrill formats for people actively seeking intensity and rush.",
+      },
+      {
+        name: "Outdoor Activities",
+        slug: "outdoor-activities",
+        description: "Experiences shaped by fresh air, scenery, and outdoor movement.",
+      },
+      {
+        name: "Indoor Activities",
+        slug: "indoor-activities",
+        description: "Weather-proof experiences hosted inside studios, venues, or curated spaces.",
+      },
+      {
+        name: "Water-Based Experiences",
+        slug: "water-based-experiences",
+        description: "Experiences that happen on, in, or around water.",
+      },
+      {
+        name: "Night Experiences",
+        slug: "night-experiences",
+        description: "Evening-led options for after-dark energy, ambiance, and nightlife rhythm.",
+      },
+      {
+        name: "Cultural Experiences",
+        slug: "cultural-experiences",
+        description: "Discovery rooted in local art, heritage, museums, craft, or tradition.",
+      },
+      {
+        name: "Entertainment & Shows",
+        slug: "entertainment-shows",
+        description: "Performance-based options like live shows, events, and on-stage entertainment.",
+      },
+      {
+        name: "Food & Drink Experiences",
+        slug: "food-drink-experiences",
+        description: "Culinary formats built around tasting, cooking, pairing, or hospitality.",
+      },
+    ],
   },
   {
-    name: "Workshops",
-    slug: "workshops",
-    description: "Guided group sessions focused on reflection, growth, and connection.",
-    isActive: true,
+    key: "personalGrowth",
+    label: "Personal Growth",
+    emoji: "🧠",
+    description:
+      "Learning-oriented tags for users who want a meaningful outcome beyond entertainment.",
+    options: [
+      {
+        name: "Learning & Education",
+        slug: "learning-education",
+        description: "Experiences centered on discovery, skill-building, or knowledge.",
+      },
+      {
+        name: "Workshops & Masterclasses",
+        slug: "workshops-masterclasses",
+        description: "Structured expert-led sessions with active participation.",
+      },
+      {
+        name: "Wellness & Health",
+        slug: "wellness-health",
+        description: "Experiences supporting mental, emotional, or physical wellbeing.",
+      },
+      {
+        name: "Fitness & Sports",
+        slug: "fitness-sports",
+        description: "Movement-based formats that emphasize athletic energy or training.",
+      },
+      {
+        name: "Personal Development",
+        slug: "personal-development",
+        description: "Experiences focused on growth, confidence, self-awareness, and mindset.",
+      },
+    ],
   },
   {
-    name: "Mindfulness",
-    slug: "mindfulness",
-    description: "Meditation, presence, and breathing practices for everyday steadiness.",
-    isActive: true,
+    key: "useCase",
+    label: "Use-Case Driven",
+    emoji: "🗓️",
+    description:
+      "Planning shortcuts for common real-life scenarios and decision moments.",
+    options: [
+      {
+        name: "Date Ideas",
+        slug: "date-ideas",
+        description: "Experiences optimized for chemistry, conversation, and memorable shared plans.",
+      },
+      {
+        name: "Weekend Plans",
+        slug: "weekend-plans",
+        description: "Flexible discovery for free-time planning across Saturday and Sunday.",
+      },
+      {
+        name: "Birthday Experiences",
+        slug: "birthday-experiences",
+        description: "Celebration-ready experiences that feel occasion-worthy.",
+      },
+      {
+        name: "Special Occasions",
+        slug: "special-occasions",
+        description: "High-signal experiences for anniversaries, proposals, milestones, or gifts.",
+      },
+      {
+        name: "Quick Activities (1–2 hours)",
+        slug: "quick-activities",
+        description: "Short-format options for users who want something meaningful without a full-day commitment.",
+      },
+      {
+        name: "Full-Day Experiences",
+        slug: "full-day-experiences",
+        description: "Longer immersion formats that justify travel, planning, or a bigger time block.",
+      },
+      {
+        name: "Unique / Hidden Gems",
+        slug: "unique-hidden-gems",
+        description: "Less-obvious options that feel special, local, or hard to find elsewhere.",
+      },
+    ],
   },
   {
-    name: "Recovery",
-    slug: "recovery",
-    description: "Body and nervous-system support through stretching, massage, and reset rituals.",
-    isActive: true,
+    key: "pricingStyle",
+    label: "Pricing Style",
+    description:
+      "Optional commercial tags for matching examples like budget-friendly versus premium plans.",
+    options: [
+      {
+        name: "Budget-friendly",
+        slug: "budget-friendly",
+        description: "Lower-cost options that still feel rewarding and discovery-worthy.",
+      },
+      {
+        name: "Mid-range",
+        slug: "mid-range",
+        description: "Balanced experiences with moderate spend and strong value.",
+      },
+      {
+        name: "Premium",
+        slug: "premium",
+        description: "Higher-end options with elevated service, location, or production value.",
+      },
+    ],
+  },
+] as const;
+
+export const referenceCategories = referenceCategoryTaxonomy.flatMap((group) =>
+  group.key === "pricingStyle"
+    ? []
+    : group.options.map((option) => ({
+        name: option.name,
+        slug: option.slug,
+        description: option.description,
+        isActive: true,
+      }))
+);
+
+export const referenceSmartFilterCombos = [
+  {
+    slug: "romantic-outdoor-evening",
+    label: "Romantic + Outdoor + Evening",
+    tags: ["romantic", "outdoor-activities", "night-experiences"],
+    description:
+      "Good for date-night discovery with atmosphere, open air, and a stronger sense of occasion.",
+  },
+  {
+    slug: "adrenaline-group-weekend",
+    label: "Adrenaline + Group + Weekend",
+    tags: ["exciting-adrenaline", "group-activities", "weekend-plans"],
+    description:
+      "Best for high-energy group booking intent when people want something active and memorable.",
+  },
+  {
+    slug: "relaxing-solo-budget-friendly",
+    label: "Relaxing + Solo + Budget-friendly",
+    tags: ["relaxing", "solo-experiences", "budget-friendly"],
+    description:
+      "A practical recovery-minded route for users who want a calming plan without a premium spend.",
+  },
+  {
+    slug: "luxurious-for-two-special-occasion",
+    label: "Luxurious + For Two + Special Occasion",
+    tags: ["luxurious", "for-two-couples", "special-occasions"],
+    description:
+      "Designed for high-intent premium bookings around celebrations, gifting, or romantic milestones.",
+  },
+  {
+    slug: "creative-with-friends-night",
+    label: "Creative + With Friends + Night",
+    tags: ["creative", "with-friends", "night-experiences"],
+    description:
+      "Ideal for social plans where the group wants interaction, expression, and an evening vibe.",
+  },
+  {
+    slug: "mindful-solo-quick",
+    label: "Mindful + Solo + Quick Activity",
+    tags: ["mindful-spiritual", "solo-experiences", "quick-activities"],
+    description:
+      "Useful for low-friction wellness discovery when a user needs a short reset, not a big outing.",
   },
 ] as const;
 
