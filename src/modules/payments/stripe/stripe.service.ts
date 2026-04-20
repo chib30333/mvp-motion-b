@@ -1,6 +1,6 @@
 // src/modules/payments/stripe/stripe.service.ts
 
-import { stripeClient } from './stripe.client.ts';
+import { getStripeClient } from './stripe.client.ts';
 import type {
     CheckoutCreationResult,
     NormalizedWebhookEvent,
@@ -12,6 +12,7 @@ export const stripeService = {
         payment: any;
         idempotencyKey: string;
     }): Promise<CheckoutCreationResult> {
+        const stripeClient = getStripeClient();
         const booking = input.booking;
         const slot = booking.slot;
         const service = slot.service;
@@ -60,6 +61,7 @@ export const stripeService = {
         plan: any;
         idempotencyKey: string;
     }): Promise<CheckoutCreationResult> {
+        const stripeClient = getStripeClient();
         const session = await stripeClient.checkout.sessions.create(
             {
                 mode: 'subscription',
@@ -104,6 +106,7 @@ export const stripeService = {
     },
 
     constructWebhookEvent(rawBody: Buffer, signature: string, secret: string) {
+        const stripeClient = getStripeClient();
         return stripeClient.webhooks.constructEvent(rawBody, signature, secret);
     },
 

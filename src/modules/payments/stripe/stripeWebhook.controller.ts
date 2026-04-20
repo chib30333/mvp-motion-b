@@ -12,6 +12,10 @@ export const stripeWebhookController = {
             return res.status(400).send('Missing Stripe signature');
         }
 
+        if (!env.STRIPE_WEBHOOK_SECRET) {
+            return res.status(503).json({ message: 'Stripe webhook is not configured' });
+        }
+
         const event = stripeService.constructWebhookEvent(
             req.body,
             signature,
