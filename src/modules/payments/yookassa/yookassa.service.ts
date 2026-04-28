@@ -1,6 +1,6 @@
 // src/modules/payments/yookassa/yookassa.service.ts
 
-import { yookassaClient } from './yookassa.client.ts';
+import { getYookassaClient } from './yookassa.client.ts';
 import type {
     CheckoutCreationResult,
     NormalizedWebhookEvent,
@@ -12,6 +12,7 @@ export const yookassaService = {
         payment: any;
         idempotencyKey: string;
     }): Promise<CheckoutCreationResult> {
+        const yookassaClient = getYookassaClient();
         const serviceTitle = input.booking.slot.service.title;
 
         const response = await yookassaClient.post(
@@ -54,6 +55,7 @@ export const yookassaService = {
         plan: any;
         idempotencyKey: string;
     }): Promise<CheckoutCreationResult> {
+        const yookassaClient = getYookassaClient();
         const response = await yookassaClient.post(
             '/payments',
             {
