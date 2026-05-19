@@ -26,6 +26,16 @@ Rules:
             .map((p) => `- ${p.emotion}: ${p.score}`)
             .join("\n");
 
+        const recentReviews = context.recentReviews.length
+            ? context.recentReviews
+                .map((r) => {
+                    const cat = r.categorySlug ? ` [${r.categorySlug}]` : "";
+                    const comment = r.comment ? ` — "${r.comment.slice(0, 140)}"` : "";
+                    return `- ${r.serviceTitle}${cat}: ${r.rating}/5${comment}`;
+                })
+                .join("\n")
+            : "- none";
+
         const userPrompt = `
 Create a weekly Joy Map for this user.
 
@@ -38,6 +48,9 @@ User profile:
 
 Top emotional preferences:
 ${topEmotionPreferences || "- none"}
+
+Recent reviews from this user (most recent first; favour categories rated 4-5, avoid those rated 1-2 unless emotionally justified):
+${recentReviews}
 
 Allowed category slugs:
 ${allowedCategorySlugs}

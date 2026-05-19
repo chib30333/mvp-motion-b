@@ -23,3 +23,15 @@ router.get(
 );
 
 export default router;
+
+export const providerAnalyticsRoutes = (() => {
+    const r = Router();
+    r.use(requireAuth);
+    r.use(requireRole("PROVIDER"));
+    r.get(
+        "/overview",
+        validate({ query: analyticsQuerySchema }),
+        analyticsController.getProviderOverview
+    );
+    return r;
+})();

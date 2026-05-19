@@ -15,6 +15,29 @@ type CreateJoyMapWithItemsInput = {
 export class JoyMapRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
+    async findRecentReviewsByUserId(userId: string, limit = 10) {
+        return this.prisma.review.findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            take: limit,
+            include: {
+                booking: {
+                    include: {
+                        slot: {
+                            include: {
+                                service: {
+                                    include: {
+                                        category: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
     async findCurrentWeekActiveByUserId(userId: string, weekStart: Date) {
         return this.prisma.joyMap.findFirst({
             where: {

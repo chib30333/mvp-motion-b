@@ -9,6 +9,7 @@ function normalizeFilters(input: {
     cityId?: string;
     serviceId?: string;
     categoryId?: string;
+    providerId?: string;
     dateFrom?: string;
     dateTo?: string;
 }): AnalyticsFilters {
@@ -16,6 +17,7 @@ function normalizeFilters(input: {
         cityId: input.cityId,
         serviceId: input.serviceId,
         categoryId: input.categoryId,
+        providerId: input.providerId,
         dateFrom: input.dateFrom ? new Date(input.dateFrom) : undefined,
         dateTo: input.dateTo ? new Date(input.dateTo) : undefined,
     };
@@ -28,6 +30,7 @@ export const analyticsService = {
         cityId?: string;
         serviceId?: string;
         categoryId?: string;
+        providerId?: string;
         dateFrom?: string;
         dateTo?: string;
     }): Promise<AnalyticsOverviewResponse> {
@@ -99,6 +102,7 @@ export const analyticsService = {
                 cityId: rawFilters.cityId,
                 serviceId: rawFilters.serviceId,
                 categoryId: rawFilters.categoryId,
+                providerId: rawFilters.providerId,
                 dateFrom: rawFilters.dateFrom,
                 dateTo: rawFilters.dateTo,
             },

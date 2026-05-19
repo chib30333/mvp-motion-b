@@ -155,7 +155,6 @@ export const analyticsRepository = {
                         serviceId: filters.serviceId,
                         service: {
                             categoryId: filters.categoryId,
-                            providerId: filters.providerId,
                         },
                     },
                 },
@@ -173,7 +172,6 @@ export const analyticsRepository = {
                 serviceId: filters.serviceId,
                 service: {
                     categoryId: filters.categoryId,
-                    providerId: filters.providerId,
                 },
                 startsAt: buildDateFilter(filters),
             },

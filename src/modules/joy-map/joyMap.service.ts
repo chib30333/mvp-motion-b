@@ -173,6 +173,15 @@ export class JoyMapService {
             throw new Error("No emotion preferences found");
         }
 
+        const recentReviewRows = await this.repository.findRecentReviewsByUserId(userId, 10);
+        const recentReviews = recentReviewRows.map((review) => ({
+            rating: review.rating,
+            comment: review.comment ?? null,
+            categorySlug: review.booking?.slot?.service?.category?.slug ?? null,
+            serviceTitle: review.booking?.slot?.service?.title ?? "",
+            createdAtIso: review.createdAt.toISOString(),
+        }));
+
         return {
             userId,
             weekStartIso: weekStart.toISOString(),
@@ -187,6 +196,7 @@ export class JoyMapService {
             moodNotes: profile.moodNotes ?? null,
             topEmotionPreferences,
             allowedCategories,
+            recentReviews,
         };
     }
 
