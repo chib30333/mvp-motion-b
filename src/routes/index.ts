@@ -9,7 +9,7 @@ import { paymentsRouter } from '../modules/payments/payments.routes.ts';
 import { paymentsWebhookRouter } from '../modules/payments/payments.routes.ts';
 import { createJoyMapModule } from '../modules/joy-map/jobMap.module.ts';
 import moderationRoutes from "../modules/moderation/moderation.routes.ts";
-import analyticsRoutes from "../modules/analytics/analytics.routes.ts";
+import analyticsRoutes, { providerAnalyticsRoutes } from "../modules/analytics/analytics.routes.ts";
 import referenceDataRoutes from "../modules/reference-data/referenceData.routes.ts";
 import managerDashboardRoutes from "../modules/manager-dashboard/managerDashboard.routes.ts";
 import dashboardsRoutes from "../modules/dashboards/dashboards.routes.ts";
@@ -50,6 +50,7 @@ router.use("/manager/analytics", analyticsRoutes);
 router.use("/manager/dashboard", managerDashboardRoutes);
 router.use("/manager/promotions", promotionsRoutes);
 router.use("/analytics", analyticsRoutes);
+router.use("/providers/me/analytics", providerAnalyticsRoutes);
 
 
 export default router;

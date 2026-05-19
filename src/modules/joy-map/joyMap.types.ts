@@ -21,6 +21,13 @@ export type JoyMapGenerationContext = {
         name: string;
         slug: string;
     }>;
+    recentReviews: Array<{
+        rating: number;
+        comment: string | null;
+        categorySlug: string | null;
+        serviceTitle: string;
+        createdAtIso: string;
+    }>;
 };
 
 export type ParsedJoyMapItem = {

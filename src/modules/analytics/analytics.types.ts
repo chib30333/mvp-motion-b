@@ -2,6 +2,7 @@ export type AnalyticsFilters = {
     cityId?: string;
     serviceId?: string;
     categoryId?: string;
+    providerId?: string;
     dateFrom?: Date;
     dateTo?: Date;
 };
@@ -51,6 +52,7 @@ export type AnalyticsOverviewResponse = {
         cityId?: string;
         serviceId?: string;
         categoryId?: string;
+        providerId?: string;
         dateFrom?: string;
         dateTo?: string;
     };
