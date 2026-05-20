@@ -37,6 +37,14 @@ const envSchema = z.object({
     COOKIE_REFRESH_TOKEN_NAME: z.string().default('refresh_token'),
 });
 
-const parsedEnv = envSchema.parse(process.env);
+const parsed = envSchema.safeParse(process.env);
 
-export const env = parsedEnv;
+if (!parsed.success) {
+    const missing = parsed.error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join('\n  ');
+    console.error(`Invalid environment variables:\n  ${missing}`);
+    process.exit(1);
+}
+
+export const env = parsed.data;
