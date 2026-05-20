@@ -206,6 +206,22 @@ export class AuthRepository {
         );
     }
 
+    async updateUserProfile(
+        userId: string,
+        data: {
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            avatarUrl?: string | null;
+            fullName?: string | null;
+        }
+    ): Promise<User> {
+        return prisma.user.update({
+            where: { id: userId },
+            data,
+        });
+    }
+
     async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
         await prisma.user.update({
             where: { id: userId },

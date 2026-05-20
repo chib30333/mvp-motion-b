@@ -85,6 +85,17 @@ export class AuthController {
         });
     }
 
+    async updateMe(req: Request, res: Response): Promise<void> {
+        const user = await authService.updateMe(req.user!.userId, req.body);
+        res.status(200).json({ user });
+    }
+
+    async changePassword(req: Request, res: Response): Promise<void> {
+        const result = await authService.changePassword(req.user!.userId, req.body);
+        clearRefreshTokenCookie(res);
+        res.status(200).json(result);
+    }
+
     async forgotPassword(req: Request, res: Response): Promise<void> {
         const result = await authService.requestPasswordReset(req.body);
 
