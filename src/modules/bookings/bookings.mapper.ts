@@ -13,6 +13,7 @@ export function toBookingResponseDto(booking: BookingWithRelations): BookingResp
         cancelledAt: booking.cancelledAt ? booking.cancelledAt.toISOString() : null,
         refundAmount: booking.refundAmount ?? null,
         paymentExpiresAt: booking.paymentExpiresAt ? booking.paymentExpiresAt.toISOString() : null,
+        qrCodeValue: booking.qrCodeValue ?? null,
         createdAt: booking.createdAt.toISOString(),
         slot: {
             id: booking.slot.id,
