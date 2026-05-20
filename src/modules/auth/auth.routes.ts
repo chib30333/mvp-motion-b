@@ -4,11 +4,13 @@ import { validate } from '../../core/middleware/validate.middleware.ts';
 import { asyncHandler } from '../../core/utils/asyncHandler.ts';
 import { AuthController } from './auth.controller.ts';
 import {
+    changePasswordSchema,
     forgotPasswordSchema,
     googleLoginSchema,
     loginSchema,
     registerSchema,
     resetPasswordSchema,
+    updateMeSchema,
 } from './auth.schema.ts';
 
 const router = Router();
@@ -58,6 +60,20 @@ router.get(
     '/me',
     requireAuth,
     asyncHandler(authController.me.bind(authController))
+);
+
+router.patch(
+    '/me',
+    requireAuth,
+    validate({ body: updateMeSchema }),
+    asyncHandler(authController.updateMe.bind(authController))
+);
+
+router.post(
+    '/change-password',
+    requireAuth,
+    validate({ body: changePasswordSchema }),
+    asyncHandler(authController.changePassword.bind(authController))
 );
 
 export default router;

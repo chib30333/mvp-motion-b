@@ -376,6 +376,64 @@ export class AuthService {
         };
     }
 
+    async updateMe(
+        userId: string,
+        input: {
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            avatarUrl?: string | null;
+        }
+    ): Promise<SafeUser> {
+        const user = await this.authRepository.findUserById(userId);
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        const firstName = input.firstName ?? user.firstName;
+        const lastName = input.lastName ?? user.lastName;
+        const fullName = buildFullName(firstName ?? undefined, lastName ?? undefined) ?? null;
+
+        const updated = await this.authRepository.updateUserProfile(userId, {
+            firstName: input.firstName === undefined ? undefined : input.firstName,
+            lastName: input.lastName === undefined ? undefined : input.lastName,
+            phone: input.phone === undefined ? undefined : input.phone,
+            avatarUrl: input.avatarUrl === undefined ? undefined : input.avatarUrl,
+            fullName,
+        });
+
+        return this.mapSafeUser(updated);
+    }
+
+    async changePassword(
+        userId: string,
+        input: { currentPassword: string; newPassword: string }
+    ): Promise<{ message: string }> {
+        const user = await this.authRepository.findUserById(userId);
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        if (!user.passwordHash) {
+            throw new UnauthorizedError(
+                'Password change is unavailable for accounts created via Google. Use password reset instead.'
+            );
+        }
+
+        const ok = await compareValue(input.currentPassword, user.passwordHash);
+        if (!ok) {
+            throw new UnauthorizedError('Current password is incorrect');
+        }
+
+        const passwordHash = await hashValue(input.newPassword);
+        await this.authRepository.updateUserPassword(userId, passwordHash);
+        await this.authRepository.revokeAllUserRefreshTokens(userId);
+
+        return { message: 'Password updated successfully' };
+    }
+
     async resetPassword(input: ResetPasswordInput): Promise<{ message: string }> {
         const tokenHash = sha256(input.token);
         const resetToken = await this.authRepository.findActivePasswordResetTokenByHash(

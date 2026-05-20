@@ -21,6 +21,26 @@ export const paymentsRepository = {
         });
     },
 
+    async listPaymentsForUser(userId: string) {
+        return prisma.payment.findMany({
+            where: { userId },
+            include: {
+                booking: {
+                    include: {
+                        slot: {
+                            include: { service: true },
+                        },
+                    },
+                },
+                subscription: {
+                    include: { plan: true },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 100,
+        });
+    },
+
     async getPaymentByBookingId(bookingId: string) {
         return prisma.payment.findFirst({
             where: { bookingId },

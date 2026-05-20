@@ -2,6 +2,7 @@
 
 import type { Request, Response } from 'express';
 import { paymentsService } from './payments.service.ts';
+import { paymentsRepository } from './payments.repository.ts';
 import { bookingIdRouteParamSchema } from '../bookings/bookings.schema.ts';
 
 export const paymentsController = {
@@ -15,6 +16,11 @@ export const paymentsController = {
         });
 
         res.status(200).json(result);
+    },
+
+    async listMyPayments(req: Request, res: Response) {
+        const items = await paymentsRepository.listPaymentsForUser(req.user!.userId);
+        res.status(200).json({ success: true, data: items });
     },
 
     async createSubscriptionCheckout(req: Request, res: Response) {
